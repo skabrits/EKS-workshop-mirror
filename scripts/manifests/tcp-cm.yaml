@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tcp-services
+  namespace: ingress-nginx
+data:
+  9001: "{user1}/workhorse-svc:2222"
+  9002: "{user2}/workhorse-svc:2222"
+  9003: "{user3}/workhorse-svc:2222"
+  9004: "{user4}/workhorse-svc:2222"
+  9005: "{user5}/workhorse-svc:2222"
+  9006: "{user6}/workhorse-svc:2222"
+  9007: "{user7}/workhorse-svc:2222"
+  9008: "{user8}/workhorse-svc:2222"
+  9009: "{user9}/workhorse-svc:2222"
+  9010: "{user10}/workhorse-svc:2222"
+  9011: "{user11}/workhorse-svc:2222"
+  9012: "{user12}/workhorse-svc:2222"

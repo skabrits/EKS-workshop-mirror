@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workhorse-{username}
+  namespace: shared
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workhorse
+  template:
+    metadata:
+      labels:
+        app: workhorse
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-ssh
+                operator: In
+                values:
+                - "true"
+      tolerations:
+      - key: "node-ssh"
+        operator: "Exists"
+        effect: "NoSchedule"
+      containers:
+      - name: workhorse
+        image: skabrits/workhorse
+        ports:
+        - containerPort: 22{userport}
+        env:
+        - name: SUDO_ACCESS
+          value: "true"
+        - name: USER_NAME
+          value: admin
+        - name: PASSWORD_ACCESS
+          value: "true"
+        - name: USER_PASSWORD
+          value: {userpassword}
+        - name: DOCKER_HOST
+          value: tcp://localhost:2375
+        - name: SSH_PORT
+          value: "22{userport}"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /configuration
+        - name: pvolume
+          mountPath: /config
+        - name: config-init-volume
+          mountPath: /custom-cont-init.d
+          readOnly: true
+      - name: dind-daemon 
+        image: docker:1.12.6-dind 
+        command: ["/bin/sh"]
+        args: ["-c", "dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2375 --storage-driver=vfs --insecure-registry lscr.io --log-opt max-size=50m"]
+        securityContext: 
+            privileged: true 
+        volumeMounts: 
+        - name: docker-graph-storage 
+          mountPath: /var/lib/docker
+        resources:
+          requests:
+            ephemeral-storage: "40Gi"
+          limits:
+            ephemeral-storage: "50Gi"
+      serviceAccountName: {username}-sa
+      volumes: 
+      - name: docker-graph-storage 
+        emptyDir: {}
+      - name: config-volume
+        configMap:
+          name: workhorse-cm-{username}
+      - name: config-init-volume
+        configMap:
+          name: workhorse-cm-init
+      - name: pvolume
+        persistentVolumeClaim:
+          claimName: workhorse-pvc-{username}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: workhorse-svc-{username}
+  namespace: shared
+spec:
+  type: NodePort
+  selector:
+    app: workhorse
+  ports:
+  - protocol: TCP
+    port: 22{userport}
+    targetPort: 22{userport}
+    nodePort: 300{userport}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: workhorse-cm-{username}
+  namespace: shared
+data:
+  namespace.txt: |
+    {username}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: workhorse-pvc-{username}
+  namespace: shared
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 512Mi
+  storageClassName: local-path

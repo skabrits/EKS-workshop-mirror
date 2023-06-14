@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: checker
+  template:
+    metadata:
+      labels:
+        app: checker
+    spec:
+      containers:
+      - name: checker
+        image: skabrits/checker
+        ports:
+        - containerPort: 80
+      serviceAccountName: checker-sa
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: checker-svc
+spec:
+  selector:
+    app: checker
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+ name: checker-ing
+ annotations:
+   nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+ ingressClassName: nginx
+ rules:
+ - http:
+     paths:
+     - path: /results(/|$)(.*)
+       pathType: Prefix
+       backend:
+         service:
+           name: checker-svc
+           port:
+             number: 80
