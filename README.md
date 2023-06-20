@@ -13,8 +13,6 @@ TF_VAR_region=us-east-2
 
 2. Delete `scripts/authData.yaml.zip` if it exists
 
-3. Put usernames in file `scripts/users.txt` 
-
 ## Deployment
 
 Run `./scripts/do_all "helloworld"` to deploy infrastructure.
