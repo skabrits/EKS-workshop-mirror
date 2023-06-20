@@ -1,0 +1,32 @@
+#!/bin/bash
+
+SCRIPT1=$(readlink -f "$0")
+SCRIPTPATH1=$(dirname "$SCRIPT1")
+
+cp "$SCRIPTPATH1/../move_local.tf" "$SCRIPTPATH1/../terraform-state/state.tf"
+
+cd "$SCRIPTPATH1/../terraform-state"
+
+terraform init -migrate-state -force-copy
+terraform validate
+terraform apply -auto-approve
+
+cp "$SCRIPTPATH1/../move_remote.tf" "$SCRIPTPATH1/../terraform-state/state.tf"
+
+terraform init -migrate-state -force-copy
+terraform validate
+terraform apply -auto-approve
+
+cd "$SCRIPTPATH1"
+
+cd "$SCRIPTPATH1/../terraform-ecr"
+
+terraform init -migrate-state -force-copy
+terraform validate
+terraform apply -auto-approve
+
+cd "$SCRIPTPATH1"
+
+echo "$(aws ecr get-login-password --region $TF_VAR_main_region)" > tmp_ecr_cred
+
+echo "$(aws sts get-caller-identity --query Account --output text).dkr.ecr.${TF_VAR_main_region}.amazonaws.com/test-app" > tmp_ecr

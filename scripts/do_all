@@ -1,0 +1,61 @@
+#!/bin/bash
+
+SCRIPT=$(readlink -f "$0")
+SCRIPTPATH=$(dirname "$SCRIPT")
+
+if [ -z $1 ]
+then
+    echo "Enter password" >&2
+    exit 1;
+else
+    export TF_VAR_user_num="$(( $(cat $SCRIPTPATH/users.txt | wc -l) + 1 ))"
+    source "$SCRIPTPATH/setup" -p "$1"
+    source "$SCRIPTPATH/start_prereq"
+    source "$SCRIPTPATH/start"
+	
+    kubectl apply -f "$SCRIPTPATH/manifests/ingress-controller.yaml"
+
+    server=$(kubectl config view --flatten --minify -o jsonpath="{.clusters[0].cluster.server}")
+    name=$(kubectl config view --flatten --minify -o jsonpath="{.clusters[0].name}")
+    cert=$(kubectl config view --flatten --minify -o jsonpath="{.clusters[0].cluster.certificate-authority-data}")
+	
+	counter=1
+	
+	kubectl create ns "shared"
+	kubectl apply -f "$SCRIPTPATH/manifests/cluster_wide_role.yaml"
+	
+	lb="$(kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")"
+	ssh_node="$(kubectl get nodes -l node-ssh=true -o jsonpath="{.items[0].status.addresses[?(@.type=='ExternalDNS')].address}")"
+	
+	echo "$ssh_node"
+        echo "$NLB_EP"
+
+    for i in $(cat $SCRIPTPATH/users.txt)
+    do
+        user="${i}"
+		password="$(tr -dc A-Za-z0-9 </dev/urandom | head -c 13 ; echo '')"
+        kubectl create ns "$user"
+        sed "s/{username}/$user/g" "$SCRIPTPATH/manifests/cluster_role.yaml" | kubectl apply -f -
+		sed -e "s/{username}/$user/g" -e "s/{userpassword}/$password/g" -e "s/{userport}/$(printf "%02d" $counter)/g" "$SCRIPTPATH/manifests/app.yaml" | kubectl apply -f -
+		sed "s/{username}/$user/g" "$SCRIPTPATH/manifests/exercise.yaml" | kubectl apply -f -
+		
+        token_sa=$(kubectl get secret ${user}-secret -n "shared" -o jsonpath="{.data.token}" | base64 -d)
+        sed -e "s+{cluster-ca}+$cert+g" -e "s+{server-dns}+$server+g" -e "s+{cluster-name}+$name+g" -e "s+{user-name}+$user+g" -e "s+{context-name}+$name+g" -e "s+{secret-token}+$token_sa+g" "$SCRIPTPATH/manifests/config.template" > "$SCRIPTPATH/manifests/configs/config-${i}.yaml"
+		
+		echo "ssh -p 300$(printf "%02d" $counter) admin@${NLB_EP}" > "$SCRIPTPATH/manifests/configs/creds-${i}.txt"
+		echo "user: admin, password: ${password}, namespace: ${user}" >> "$SCRIPTPATH/manifests/configs/creds-${i}.txt"
+		echo "AWS endpoint: ${lb}" >> "$SCRIPTPATH/manifests/configs/creds-${i}.txt"
+        echo "-----------------------------------------------------------" >> "$SCRIPTPATH/manifests/configs/creds-${i}.txt"
+        echo -e "Docker registry: \n\nuser: AWS, \n\npassword: $(cat $SCRIPTPATH/tmp_ecr_cred), \n\nimage name: $(cat $SCRIPTPATH/tmp_ecr)" >> "$SCRIPTPATH/manifests/configs/creds-${i}.txt"
+		echo "-----------------------------------------------------------" >> "$SCRIPTPATH/manifests/configs/creds-${i}.txt"
+		echo "Runbook Part I: https://gitlab.dataart.com/sp/kw/documentation/-/tree/master/Part%20I/README.md" >> "$SCRIPTPATH/manifests/configs/creds-${i}.txt"
+		echo "Runbook Part II: https://gitlab.dataart.com/sp/kw/documentation/-/tree/master/Part%20II/README.md" >> "$SCRIPTPATH/manifests/configs/creds-${i}.txt"
+		echo "Demos Part I: https://gitlab.dataart.com/sp/kw/demo/-/tree/master/Part%20I" >> "$SCRIPTPATH/manifests/configs/creds-${i}.txt"
+		echo "Demos Part II: https://gitlab.dataart.com/sp/kw/demo/-/tree/master/Part%20II" >> "$SCRIPTPATH/manifests/configs/creds-${i}.txt"
+		
+		counter=$((counter + 1))
+    done
+	kubectl apply -f "$SCRIPTPATH/manifests/app-shared.yaml"
+	kubectl apply -f "$SCRIPTPATH/manifests/checker.yaml"
+	kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.24/deploy/local-path-storage.yaml
+fi
