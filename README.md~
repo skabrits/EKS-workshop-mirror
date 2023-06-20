@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # DevOps Kubernetes workshop
 
 ## Prereqs
@@ -22,3 +23,7 @@ Run `./scripts/do_all "helloworld"` to deploy infrastructure.
 ## User data
 
 You can find user data in scripts/manifests/configs/username.txt
+=======
+# Terraform-EKS
+Part II DA Practice
+>>>>>>> 59406b43eb3617ae17e62af02de9b4418af092ae

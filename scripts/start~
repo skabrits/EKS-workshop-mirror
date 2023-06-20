@@ -12,6 +12,7 @@ terraform apply -auto-approve
 aws eks --region $(terraform output -raw region) update-kubeconfig \
     --name $(terraform output -raw cluster_name)
 
+<<<<<<< HEAD
 export TF_VAR_cluster_vpc="$(terraform output -raw vpc_id)"
 export TF_VAR_subnets="$(terraform output -json vpc_subnets)"
 
@@ -23,4 +24,6 @@ terraform apply -auto-approve
 
 export NLB_EP=$(terraform output -raw region)
 
+=======
+>>>>>>> 59406b43eb3617ae17e62af02de9b4418af092ae
 cd "$SCRIPTPATH1"
