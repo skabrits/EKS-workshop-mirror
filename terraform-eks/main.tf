@@ -12,18 +12,8 @@ provider "aws" {
   region = var.region
 }
 
-terraform {
-  backend "s3" {
-    encrypt 	   = true
-    bucket 	   = "skabrits-bucket"
-    dynamodb_table = "skabrits-tf-state-ldb"
-    key            = "lock-file/nextcloud/terraform.tfstate"
-    region         = "us-east-1"
-  }
-}
-
 data "aws_availability_zones" "available" {}
 
 locals {
-  cluster_name = "django-cluster"
+  cluster_name = var.project_name
 }

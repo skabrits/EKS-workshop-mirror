@@ -1,7 +1,7 @@
 data "aws_instances" "nodes" {
   instance_tags = {
     Name = "node-group-2"
-    "eks:cluster-name" = "django-cluster"
+    "eks:cluster-name" = var.project_name
   }
 
   instance_state_names = ["running"]

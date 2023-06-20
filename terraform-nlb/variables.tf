@@ -28,3 +28,9 @@ variable "user_num" {
   type        = number
   default     = 1
 }
+
+variable "project_name" {
+  description = "Used for generating cluster name"
+  type        = string
+  default     = "default"
+}

@@ -9,6 +9,9 @@ AWS_ACCESS_KEY_ID=**************************
 AWS_SECRET_ACCESS_KEY=**************************
 TF_VAR_main_region=us-east-1
 TF_VAR_region=us-east-2
+TF_VAR_lock_table=******************
+TF_VAR_state_bucket=********************
+TF_VAR_project_name=Kubenetes-workshop
 ```
 
 2. Delete `scripts/authData.yaml.zip` if it exists

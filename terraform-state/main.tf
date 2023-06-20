@@ -4,12 +4,12 @@ provider "aws" {
 
 resource "aws_s3_bucket" "lbuck" {
     force_destroy = true
-    bucket = "skabrits-bucket"
+    bucket = var.state_bucket
     acl = "private"
 }
 
 resource "aws_dynamodb_table" "ldb" {
-  name = "skabrits-tf-state-ldb"
+  name = var.lock_table
   hash_key = "LockID"
   read_capacity = 20
   write_capacity = 20
