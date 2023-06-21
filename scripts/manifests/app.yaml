@@ -53,7 +53,7 @@ spec:
           mountPath: /custom-cont-init.d
           readOnly: true
       - name: dind-daemon 
-        image: docker:1.12.6-dind 
+        image: docker:24.0-dind 
         command: ["/bin/sh"]
         args: ["-c", "dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2375 --storage-driver=vfs --insecure-registry lscr.io --log-opt max-size=50m"]
         securityContext: 
