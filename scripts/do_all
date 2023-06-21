@@ -42,7 +42,7 @@ else
         token_sa=$(kubectl get secret ${user}-secret -n "shared" -o jsonpath="{.data.token}" | base64 -d)
         sed -e "s+{cluster-ca}+$cert+g" -e "s+{server-dns}+$server+g" -e "s+{cluster-name}+$name+g" -e "s+{user-name}+$user+g" -e "s+{context-name}+$name+g" -e "s+{secret-token}+$token_sa+g" "$SCRIPTPATH/manifests/config.template" > "$SCRIPTPATH/manifests/configs/config-${i}.yaml"
 		
-		echo "ssh -p 300$(printf "%02d" $counter) admin@${NLB_EP}" > "$SCRIPTPATH/manifests/configs/creds-${i}.txt"
+		echo "ssh -o ServerAliveInterval=60 -p 300$(printf "%02d" $counter) admin@${NLB_EP}" > "$SCRIPTPATH/manifests/configs/creds-${i}.txt"
 		echo "user: admin, password: ${password}, namespace: ${user}" >> "$SCRIPTPATH/manifests/configs/creds-${i}.txt"
 		echo "AWS endpoint: ${lb}" >> "$SCRIPTPATH/manifests/configs/creds-${i}.txt"
         echo "-----------------------------------------------------------" >> "$SCRIPTPATH/manifests/configs/creds-${i}.txt"

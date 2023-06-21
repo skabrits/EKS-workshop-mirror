@@ -16,6 +16,8 @@ TF_VAR_project_name=Kubenetes-workshop
 
 2. Delete `scripts/authData.yaml.zip` if it exists
 
+3. Put user names in file `scripts/users.txt`
+
 ## Deployment
 
 Run `./scripts/do_all "helloworld"` to deploy infrastructure.
