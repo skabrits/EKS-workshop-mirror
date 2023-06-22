@@ -61,7 +61,7 @@ module "eks" {
         xvda = {
           device_name = "/dev/xvda"
           ebs = {
-            volume_size           = 200
+            volume_size           = 250
             volume_type           = "gp3"
             delete_on_termination = true
           }

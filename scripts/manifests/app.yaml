@@ -61,6 +61,9 @@ spec:
         volumeMounts: 
         - name: docker-graph-storage 
           mountPath: /var/lib/docker
+        - name: pvolume
+          mountPath: /config
+          readOnly: true
         resources:
           requests:
             ephemeral-storage: "30Gi"

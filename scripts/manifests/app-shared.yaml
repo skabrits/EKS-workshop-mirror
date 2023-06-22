@@ -19,3 +19,4 @@ data:
   init.sh: |
     #!/bin/bash
     sed -i "s/$(cat /etc/ssh/sshd_config | grep "^Port ")/Port ${SSH_PORT}/g" /etc/ssh/sshd_config
+    docker pull fredblgr/ubuntu-novnc:20.04
