@@ -19,4 +19,7 @@ data:
   init.sh: |
     #!/bin/bash
     sed -i "s/$(cat /etc/ssh/sshd_config | grep "^Port ")/Port ${SSH_PORT}/g" /etc/ssh/sshd_config
+    # echo "*/2 * * * * docker pull fredblgr/ubuntu-novnc:20.04 && crontab -l | grep -v 'docker pull' | crontab -" | sudo crontab -
+    # sudo crond -l 8
+    sleep 120
     docker pull fredblgr/ubuntu-novnc:20.04
